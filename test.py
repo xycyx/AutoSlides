@@ -228,6 +228,7 @@ file_name = clean_file_name(file_name)
 
 file_name2 = 'UWEVEREST_981__UWEVEREST-981-H2212406_19750320_Male_Angio (3mmx3mm)_20170104135911_OS_20170104144338_Angiography_Avascular.bmp';
 file_name2 = clean_file_name(file_name2)
+
 try:
     found = re.search("(?<=Angiography).*?(?=mm)", file_name)
 except AttributeError:
@@ -245,30 +246,74 @@ def clean_file_name(file_name):
     """
     
     while ' ' in file_name:
-        file_name = file_name.replace(' ','')
+        file_name = file_name.replace(' ', '')
     while '(' in file_name:
-        file_name = file_name.replace('(','')
+        file_name = file_name.replace('(', '')
     while ')' in file_name:
-        file_name = file_name.replace(')','')           
+        file_name = file_name.replace(')', '')           
     return file_name
 
-
+#%%
 def find_system_type(file_name):
-    """ get system type
+    """ get system type by 'UWANG5000' and 'UWEVEREST'
     """
-    if file_name.find('UWANG5000'):
+    if file_name.upper().find('UWANG5000')>=0:
         system_type = 'SD'
-    elif file_name.find('UWEVEREST'):
+    elif file_name.upper().find('UWEVEREST')>=0:
         system_type = 'SS'
     else:
+        print ('system type not found')
         system_type = -1
     return system_type
 
 def find_case_number(file_name):
-    """ get the case number
+    """ get the case number by rule '-number-'
     """
-    
+    try:
+        found = re.search("-[-+]?\d+-", file_name)
+        case_number = found.group(0)
+    except AttributeError:
+        print('case number not found')
+        return -1
+    return case_number
 
+def find_H_number(file_name):
+    """ get the H number by rule '-number-'
+    """
+    # still have issues
+    try:
+        found = re.search("H[-+]?\d+—_", file_name)
+        H_number = found.group(0)
+    except AttributeError:
+        print('H number not found')
+        return -1
+    return H_number
+
+def find_gender(file_name):
+    """ get system type by '_male_' and '_female_'
+    """
+    if file_name.lower().find('_female_')>=0:
+        gender = 'female'
+    elif file_name.lower().find('_male_')>=0:
+        gender = 'male'
+    else:
+        print ('gender not found')
+        gender = -1
+    return gender
+
+def find_OD_OS(file_name):
+    """ get eye position by '_OD_' and '_OS_'
+    """
+    if file_name.upper().find('_OD_')>=0:
+        OD_OS = 'OD'
+    elif file_name.upper().find('_OS_')>=0:
+        OD_OS = 'OS'
+    else:
+        print ('eye position not found')
+        OD_OS = -1
+    return OD_OS
+
+#%%
 def analysis_filename(file_lists):
     """this function accept the file name and 
     """
