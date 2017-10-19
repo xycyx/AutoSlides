@@ -33,7 +33,8 @@ add_a_table(prs, 4, 3, 'test the table')
 prs.save('test1.pptx')
 #%%
 def add_pic_with_title(slide, img_path, left, top, width, img_name):
-    # add a picture to slide from img_path and add the title with img_name
+    """add a picture to slide from img_path and add the title with img_name
+    """
     from pptx.util import Inches
     left = Inches(left)
     top_img = Inches(top)
@@ -52,6 +53,8 @@ def add_pic_with_title(slide, img_path, left, top, width, img_name):
     return slide
     
 def add_new_slide_pics(prs, img_paths, img_nums, img_name):
+    """Decide the layout of pictures
+    """
 #    from pptx.util import Inches
     #img_nums = len(img_paths)
 
@@ -85,7 +88,12 @@ def add_new_slide_pics(prs, img_paths, img_nums, img_name):
     return prs
     
 def set_layout(prs, layout,img_paths, img_nums, img_name):
-    #decide the layout of picture by accepting the layout_num
+    """Set the position and decide the layout of picture 
+    Args: 
+        layout: the size of images matriax , as [4, 2]
+    Return:
+        pre: the Presentation 
+    """
     blank_slide_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(blank_slide_layout)
     
@@ -108,6 +116,7 @@ def set_layout(prs, layout,img_paths, img_nums, img_name):
         ind = ind + 1
     return prs
  #%%   
+ # get the size of image without open it
 from PIL import Image
 im = Image.open('./example/1.tiff')
 im.size
@@ -163,6 +172,8 @@ im.size
 
 
 def add_a_table(prs, rows, cols, slide_title):
+    """ Add the slide with table
+    """
     from pptx.util import Inches
     title_only_slide_layout = prs.slide_layouts[5]
     slide = prs.slides.add_slide(title_only_slide_layout)
@@ -189,8 +200,86 @@ def add_a_table(prs, rows, cols, slide_title):
 #    table.cell(1, 0).text = 'Baz'
 #    table.cell(1, 1).text = 'Qux'
     return prs
+#######################################################################
 
-#search the foler
+def search_images_in_folder(directory):
+    """Search and list all images (bmp, png, jpg, tif) files in the folder
+    Args: 
+        directory: the folder conatins all files
+    Return:
+        file_lists: the list of all images files
+    """
+    file_lists = []
+#    directory = './example2'
+    num = 0
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.lower().endswith(('.bmp','.png','.jpg','.jpeg','.tiff','.tif')):
+#                print file
+                file_lists.append(os.path.join(root, file))
+    return file_lists       
+ 
+file_lists = search_images_in_folder('./example2')
+
+#%%            
+import re
+file_name = file_lists[0]
+file_name = clean_file_name(file_name)
+
+file_name2 = 'UWEVEREST_981__UWEVEREST-981-H2212406_19750320_Male_Angio (3mmx3mm)_20170104135911_OS_20170104144338_Angiography_Avascular.bmp';
+file_name2 = clean_file_name(file_name2)
+try:
+    found = re.search("(?<=Angiography).*?(?=mm)", file_name)
+except AttributeError:
+    print(' pattern not found')
+#    return -1
+found.group(0) 
+
+
+def clean_file_name(file_name):
+    """Remove the ' ', '(', ')' of the the filename
+    Args: 
+        file_name: the input filename
+    Returns: 
+        file_name: the output of cleaned filename
+    """
+    
+    while ' ' in file_name:
+        file_name = file_name.replace(' ','')
+    while '(' in file_name:
+        file_name = file_name.replace('(','')
+    while ')' in file_name:
+        file_name = file_name.replace(')','')           
+    return file_name
+
+
+def find_system_type(file_name):
+    """ get system type
+    """
+    if file_name.find('UWANG5000'):
+        system_type = 'SD'
+    elif file_name.find('UWEVEREST'):
+        system_type = 'SS'
+    else:
+        system_type = -1
+    return system_type
+
+def find_case_number(file_name):
+    """ get the case number
+    """
+    
+
+def analysis_filename(file_lists):
+    """this function accept the file name and 
+    """
+    
+    # make a dataframe to contain the arributes of files 
+    
+    for file_name in file_lists:
+        system_type = find_system_type(file_name)
+        
+    
+    
 ######################################################
 #%% test part
 from pptx import Presentation
