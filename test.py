@@ -411,13 +411,16 @@ def find_image_modality(file_name):
     """ get image modality by '_OD_number_Angiography_' or '_OS_number_XX_'
     """
     try:
-        found = re.search("[_](OS|OD)[_](\d+)[_](Angiography_|Structure_)", file_name)
+        found = re.search("[_](OS|OD)[_](\d+)[_](Angiography_|Structure_|B-Scan)", file_name)
         image_modality_str = found.group(0)
     except AttributeError:
+        print(file_name)
         print('image modality not found')
         return -1   
     # get the image modality from the re result
-    if image_modality_str.lower().find('angiography')>=0:
+    if image_modality_str.lower().find('b-scan')>=0:
+        image_modality = 'B-scan'
+    elif image_modality_str.lower().find('angiography')>=0:
         image_modality = 'Angiography'
     elif image_modality_str.lower().find('structure')>=0:
         image_modality = 'Structure'
@@ -427,12 +430,14 @@ def find_image_layer(file_name):
     """ get image layer by '_OD|OS_number_Angiography_XX.' 
     """
     try:
-        found = re.search("[_](OS|OD)[_](\d+)[_](Angiography_|Structure_).+\.", file_name)
+        found = re.search("[_](OS|OD)[_](\d+)[_](Angiography_|Structure_|B-Scan).+\.", file_name)
         image_layer_str = found.group(0)
     except AttributeError:
         print('image layer not found')
         return -1
-    if find_image_modality(file_name) == 'Angiography':
+    if find_image_modality(file_name) == 'B-scan':
+        image_layer = image_layer_str[19:-1]
+    elif find_image_modality(file_name) == 'Angiography':
         image_layer = image_layer_str[31:-1]
     elif find_image_modality(file_name) == 'Structure':
         image_layer = image_layer_str[29:-1]
@@ -464,8 +469,7 @@ def analysis_filename(file_name):
     import pandas as pd
     d = {'system_type': find_system_type(file_name),
          'first_name': find_first_name(file_name),
-         'case_number': find_case_number(file_name),
-         
+         'case_number': find_case_number(file_name),         
          'last_name': find_last_name(file_name),
          'H_number': find_H_number(file_name),
          'gender': find_gender(file_name),
@@ -479,7 +483,7 @@ def analysis_filename(file_name):
          'file_type': find_file_type(file_name),
          'file_name': file_name
          }
-    df = pd. DataFrame(data=d, index=[0,])
+    df = pd.DataFrame(data=d, index=[0,])
 
     return df
     
@@ -489,11 +493,16 @@ def analysis_filelists(file_lists):
     """
     
     # make a dataframe to contain the arributes of files 
-    df = pd.
+    file_num = 0;
     for file_name in file_lists:
         file_name = clean_file_name(file_name)
-        analysis_filename(file_name)    
-        
+            
+        if file_num==0:
+            df = analysis_filename(file_name)
+        else: 
+            df = df.append(analysis_filename(file_name))
+        file_num += 1
+    df.to_csv('file_list.csv')
 #        find_system_type(file_name)
 #        find_first_name(file_name)
 #        find_case_number(file_name)
