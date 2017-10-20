@@ -226,8 +226,11 @@ import re
 file_name = file_lists[0]
 file_name = clean_file_name(file_name)
 
-file_name2 = 'UWEVEREST_981__UWEVEREST-981-H2212406_19750320_Male_Angio (3mmx3mm)_20170104135911_OS_20170104144338_Angiography_Avascular.bmp';
+file_name2 = 'UWEVEREST_981__UWEVEREST-981-H2212406_19750320_Male_Angio (3mmx3mm)_20170104135911_OS_20170104144338_Angiography_Avascular.bmp'
 file_name2 = clean_file_name(file_name2)
+
+file_name3 = './example2/Angio6x6/UWANG5000_977__UWANG5000-977-H3848027_19741016_Female_Angiography 6x6 mm_20161123162131_OS_20161123163020_Structure_Superficial.bmp'
+file_name3 = clean_file_name(file_name3)
 
 try:
     found = re.search("(?<=Angiography).*?(?=mm)", file_name)
@@ -254,8 +257,9 @@ def clean_file_name(file_name):
     return file_name
 
 #%%
+# regular expression to parse the file name
 def find_system_type(file_name):
-    """ get system type by 'UWANG5000' and 'UWEVEREST'
+    """ get system type by the rule 'UWANG5000' or 'UWEVEREST'
     """
     if file_name.upper().find('UWANG5000')>=0:
         system_type = 'SD'
@@ -266,31 +270,20 @@ def find_system_type(file_name):
         system_type = -1
     return system_type
 
-def find_case_number(file_name):
-    """ get the case number by rule '-number-'
+def find_first_name(file_name):
+    """ get the first name by the rule '_XXXX__'
     """
     try:
-        found = re.search("-[-+]?\d+-", file_name)
-        case_number = found.group(0)
+        found = re.search("[_].+[_][_]", file_name)
+        first_name_str = found.group(0)
     except AttributeError:
-        print('case number not found')
+        print('first name number not found')
         return -1
-    return case_number
-
-def find_H_number(file_name):
-    """ get the H number by rule '-number-'
-    """
-    # still have issues
-    try:
-        found = re.search("H[-+]?\d+—_", file_name)
-        H_number = found.group(0)
-    except AttributeError:
-        print('H number not found')
-        return -1
-    return H_number
+    first_name = first_name_str[1:-2]
+    return first_name
 
 def find_gender(file_name):
-    """ get system type by '_male_' and '_female_'
+    """ get system type by '_male_' or '_female_'
     """
     if file_name.lower().find('_female_')>=0:
         gender = 'female'
@@ -301,8 +294,78 @@ def find_gender(file_name):
         gender = -1
     return gender
 
+def find_last_name(file_name):
+    """ get the last name by the rule '__XXXX_birthday_(Female|Male)'
+    """
+    try:
+        found = re.search("(__).+[_](\d+)[_](Female|Male)", file_name)
+        last_name_str = found.group(0)
+    except AttributeError:
+        print('last name number not found')
+        return -1
+    if find_gender(file_name) == 'male':
+        last_name = last_name_str[2:-14]
+    elif find_gender(file_name) == 'female':
+        last_name = last_name_str[2:-16]
+    else:
+        print('last name number not found')
+        return -1
+    return last_name
+    
+
+#def find_case_number(file_name):
+#    """ get the case number by rule '-number-'
+#    """
+#    try:
+#        found = re.search("-[-+]?\d+-", file_name)
+#        case_str = found.group(0)
+#    except AttributeError:
+#        print('case number not found')
+#        return -1
+#    case_number = int(case_str[1:-1])
+#    return case_number
+
+def find_H_number(file_name):
+    """ get the H number by the rule '-Hnumber-'
+    """
+    
+    last_name = find_last_name(file_name)
+    try:
+        found = re.search("[_|-][H](\d+)", last_name)
+        H_str = found.group(0)
+    except AttributeError:
+        print('H number not found')
+        return -1
+    H_number = H_str[1:]
+    return H_number
+
+def find_birthday(file_name):
+    """ get the birthday by '_number_Female' or '_number_Male'
+    """
+    # still have issues
+    try:
+        found = re.search("[_](\d+)[_](Female|Male)", file_name)
+        birthday_str = found.group(0)
+    except AttributeError:
+        print('birthday not found')
+        return -1
+    birthday = birthday_str[1:9]
+    return birthday
+
+def find_FOV(file_name):
+    """get the field of veiw by "number mm_"
+    """
+    try:
+        found = re.search("(\d+)[m][m][_]", file_name)
+        FOV_str = found.group(0)
+    except AttributeError:
+        print('field of veiw not found')
+        return -1
+    FOV = int(FOV_str[0:-3])
+    return FOV
+
 def find_OD_OS(file_name):
-    """ get eye position by '_OD_' and '_OS_'
+    """ get eye position by '_OD_' or '_OS_'
     """
     if file_name.upper().find('_OD_')>=0:
         OD_OS = 'OD'
@@ -313,6 +376,79 @@ def find_OD_OS(file_name):
         OD_OS = -1
     return OD_OS
 
+def find_scan_time(file_name):
+    """ get scanning time by '_number_OD_' or '_number_OS_'
+    """
+    try:
+        found = re.search("[_](\d+)[_](OS|OD)[_]", file_name)
+        scantime_str = found.group(0)
+    except AttributeError:
+        print('scaning time not found')
+        return -1
+    scantime = scantime_str[1:-4]
+    return scantime
+
+def find_save_time(file_name):
+    """ get saving time by '_OD_number_' or '_OS_number_'
+    """
+    try:
+        found = re.search("[_](OS|OD)[_](\d+)[_]", file_name)
+        savetime_str = found.group(0)
+    except AttributeError:
+        print('save time not found')
+        return -1
+    savetime = savetime_str[4:-1]
+    return savetime
+
+def find_image_modality(file_name):
+    """ get image modality by '_OD_number_Angiography_' or '_OS_number_XX_'
+    """
+    try:
+        found = re.search("[_](OS|OD)[_](\d+)[_](Angiography_|Structure_)", file_name)
+        image_modality_str = found.group(0)
+    except AttributeError:
+        print('image modality not found')
+        return -1   
+    # get the image modality from the re result
+    if image_modality_str.lower().find('angiography')>=0:
+        image_modality = 'Angiography'
+    elif image_modality_str.lower().find('structure')>=0:
+        image_modality = 'Structure'
+    return image_modality
+
+def find_image_layer(file_name):
+    """ get image layer by '_OD|OS_number_Angiography_XX.' 
+    """
+    try:
+        found = re.search("[_](OS|OD)[_](\d+)[_](Angiography_|Structure_).+\.", file_name)
+        image_layer_str = found.group(0)
+    except AttributeError:
+        print('image layer not found')
+        return -1
+    if find_image_modality(file_name) == 'Angiography':
+        image_layer = image_layer_str[31:-1]
+    elif find_image_modality(file_name) == 'Structure':
+        image_layer = image_layer_str[29:-1]
+    else:
+        print('image layer not found')
+        return -1
+    return image_layer
+    
+def find_file_type(file_name):
+    """ get file type by '.XXX'
+    """
+    try:
+        found = re.search("(\.png|\.jpg|\.jpeg|\.tiff|\.tif|\.bmp)", file_name)
+        file_type_str = found.group(0)
+    except AttributeError:
+        print('file type not found')
+        return -1
+    file_type = file_type_str[1::]
+    return file_type
+    
+    
+
+
 #%%
 def analysis_filename(file_lists):
     """this function accept the file name and 
@@ -321,10 +457,37 @@ def analysis_filename(file_lists):
     # make a dataframe to contain the arributes of files 
     
     for file_name in file_lists:
-        system_type = find_system_type(file_name)
+        fiel_name = clean_file_name(file_name)
         
-    
-    
+#        find_system_type(file_name)
+#        find_first_name(file_name)
+#        find_gender(file_name)
+#        find_last_name(file_name)
+#        find_H_number(file_name)
+#        find_birthday(file_name)
+#        find_FOV(file_name)
+#        find_OD_OS(file_name)
+#        find_scan_time(file_name)
+#        find_save_time(file_name)
+#        find_image_modality(file_name)
+#        find_image_layer(file_name)
+#        find_file_type(file_name)
+        
+        
+        print find_system_type(file_name)
+        print find_first_name(file_name)
+        print find_gender(file_name)
+        print find_last_name(file_name)
+        print find_H_number(file_name)
+        print find_birthday(file_name)
+        print find_FOV(file_name)
+        print find_OD_OS(file_name)
+        print find_scan_time(file_name)
+        print find_save_time(file_name)
+        print find_image_modality(file_name)
+        print find_image_layer(file_name)
+        print find_file_type(file_name)
+                
 ######################################################
 #%% test part
 from pptx import Presentation
