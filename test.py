@@ -463,10 +463,25 @@ def analysis_filename(file_name):
     """
     import pandas as pd
     d = {'system_type': find_system_type(file_name),
-         'first_name':find_first_name(file_name)}
-    df = pd. DataFrame(data=d, index=[0,1])
+         'first_name': find_first_name(file_name),
+         'case_number': find_case_number(file_name),
+         
+         'last_name': find_last_name(file_name),
+         'H_number': find_H_number(file_name),
+         'gender': find_gender(file_name),
+         'birthday': find_birthday(file_name),
+         'FOV': find_FOV(file_name),
+         'OD_OS': find_OD_OS(file_name),
+         'scan_time': find_scan_time(file_name),
+         'save_time': find_save_time(file_name),
+         'image_modality': find_image_modality(file_name),
+         'image_layer': find_image_layer(file_name),
+         'file_type': find_file_type(file_name),
+         'file_name': file_name
+         }
+    df = pd. DataFrame(data=d, index=[0,])
 
-    
+    return df
     
 
 def analysis_filelists(file_lists):
@@ -474,9 +489,10 @@ def analysis_filelists(file_lists):
     """
     
     # make a dataframe to contain the arributes of files 
-    
+    df = pd.
     for file_name in file_lists:
-        fiel_name = clean_file_name(file_name)
+        file_name = clean_file_name(file_name)
+        analysis_filename(file_name)    
         
 #        find_system_type(file_name)
 #        find_first_name(file_name)
@@ -493,21 +509,6 @@ def analysis_filelists(file_lists):
 #        find_image_layer(file_name)
 #        find_file_type(file_name)
         
-        
-        print find_system_type(file_name)
-        print find_first_name(file_name)
-        print find_case_number(file_name)
-        print find_gender(file_name)
-        print find_last_name(file_name)
-        print find_H_number(file_name)
-        print find_birthday(file_name)
-        print find_FOV(file_name)
-        print find_OD_OS(file_name)
-        print find_scan_time(file_name)
-        print find_save_time(file_name)
-        print find_image_modality(file_name)
-        print find_image_layer(file_name)
-        print find_file_type(file_name)
                 
 ######################################################
 #%% test part
