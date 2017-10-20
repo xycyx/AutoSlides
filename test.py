@@ -273,14 +273,34 @@ def find_system_type(file_name):
 def find_first_name(file_name):
     """ get the first name by the rule '_XXXX__'
     """
+    # the the last occurrence of '/', as the strating position of firstname
+    if file_name.rfind('/')>=0:
+        name_position = file_name.rfind('/') + 1
+    else:
+        name_position = 0
+    
+    #get the first name from the strat position    
     try:
-        found = re.search("[_].+[_][_]", file_name)
+        found = re.search(".+[_][_]", file_name[name_position:])
         first_name_str = found.group(0)
     except AttributeError:
         print('first name number not found')
         return -1
-    first_name = first_name_str[1:-2]
+    first_name = first_name_str[:-2]
     return first_name
+
+def find_case_number(file_name):
+    """ get the case number by rule '-number-'
+    """
+    case_str = find_first_name(file_name)
+    try:
+        found = re.search("[-|_]\d+", case_str)
+        case_str_number = found.group(0)
+    except AttributeError:
+        print('case number not found')
+        return -1
+    case_number = int(case_str_number[1:])
+    return case_number
 
 def find_gender(file_name):
     """ get system type by '_male_' or '_female_'
@@ -311,19 +331,6 @@ def find_last_name(file_name):
         print('last name number not found')
         return -1
     return last_name
-    
-
-#def find_case_number(file_name):
-#    """ get the case number by rule '-number-'
-#    """
-#    try:
-#        found = re.search("-[-+]?\d+-", file_name)
-#        case_str = found.group(0)
-#    except AttributeError:
-#        print('case number not found')
-#        return -1
-#    case_number = int(case_str[1:-1])
-#    return case_number
 
 def find_H_number(file_name):
     """ get the H number by the rule '-Hnumber-'
@@ -450,7 +457,19 @@ def find_file_type(file_name):
 
 
 #%%
-def analysis_filename(file_lists):
+
+def analysis_filename(file_name):
+    """splict the filename to a dataframe 
+    """
+    import pandas as pd
+    d = {'system_type': find_system_type(file_name),
+         'first_name':find_first_name(file_name)}
+    df = pd. DataFrame(data=d, index=[0,1])
+
+    
+    
+
+def analysis_filelists(file_lists):
     """this function accept the file name and 
     """
     
@@ -461,6 +480,7 @@ def analysis_filename(file_lists):
         
 #        find_system_type(file_name)
 #        find_first_name(file_name)
+#        find_case_number(file_name)
 #        find_gender(file_name)
 #        find_last_name(file_name)
 #        find_H_number(file_name)
@@ -476,6 +496,7 @@ def analysis_filename(file_lists):
         
         print find_system_type(file_name)
         print find_first_name(file_name)
+        print find_case_number(file_name)
         print find_gender(file_name)
         print find_last_name(file_name)
         print find_H_number(file_name)
