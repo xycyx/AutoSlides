@@ -41,7 +41,10 @@ def add_pic_with_title(slide, img_path, left, top, width, img_name):
     width = Inches(width)
     
     # add picture
-    pic = slide.shapes.add_picture(img_path, left, top_img, width=width)
+    try:
+        pic = slide.shapes.add_picture(img_path, left, top_img, width=width)
+    except IOError:
+        print('warrning: IO error' ) 
     
     #add title
     top_title = Inches(top - 0.3)
@@ -52,7 +55,7 @@ def add_pic_with_title(slide, img_path, left, top, width, img_name):
     
     return slide
     
-def add_new_slide_pics(prs, img_paths, img_nums, img_name):
+def add_new_slide_pics(prs, img_paths, img_nums, img_name, slide_title=''):
     """Decide the layout of pictures
     """
 #    from pptx.util import Inches
@@ -61,41 +64,50 @@ def add_new_slide_pics(prs, img_paths, img_nums, img_name):
     #%% 2
     if img_nums == 2:
         layout = [1, 2]
-        prs = set_layout(prs, layout, img_paths, img_nums, img_name)
+        prs = set_layout(prs, layout, img_paths, img_nums, img_name, slide_title)
     
     #%% 3
     elif img_nums == 3:
         layout = [1, 3]
-        prs = set_layout(prs, layout, img_paths, img_nums, img_name)
+        prs = set_layout(prs, layout, img_paths, img_nums, img_name, slide_title)
    
     #%% 4 still have a issue
     elif img_nums == 4:
         layout = [2, 2]
-        prs = set_layout(prs, layout, img_paths, img_nums, img_name)
+        prs = set_layout(prs, layout, img_paths, img_nums, img_name, slide_title)
     
     #%% 6
     elif img_nums == 6:
         layout = [2, 3]
-        prs = set_layout(prs, layout, img_paths, img_nums, img_name)
+        prs = set_layout(prs, layout, img_paths, img_nums, img_name, slide_title)
     
     #%% 8
     elif img_nums == 8:
         layout = [2, 4]
-        prs = set_layout(prs, layout, img_paths, img_nums, img_name)        
+        prs = set_layout(prs, layout, img_paths, img_nums, img_name, slide_title)        
                
     else:
         print('other numbers')
     return prs
     
-def set_layout(prs, layout,img_paths, img_nums, img_name):
+def set_layout(prs, layout, img_paths, img_nums, img_name, slide_title=''):
     """Set the position and decide the layout of picture 
     Args: 
         layout: the size of images matriax , as [4, 2]
     Return:
         pre: the Presentation 
     """
+    from pptx.util import Inches
     blank_slide_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(blank_slide_layout)
+    
+    txleft = txtop = txwidth = txheight = Inches(1)
+    txBox = slide.shapes.add_textbox(txleft, txtop, txwidth, txheight)
+    tf = txBox.text_frame
+    
+
+    tf.text = slide_title
+    tf.font.size = Pt(22)
     
     ind = 0
     int_width = 0.3
@@ -463,10 +475,13 @@ def find_file_type(file_name):
 
 #%%
 
-def analysis_filename(file_name):
+def analysis_filename(file_name, ind):
     """splict the filename to a dataframe 
     """
+    file_path = file_name
+    file_name = clean_file_name(file_name)
     import pandas as pd
+    # create the dataframe
     d = {'system_type': find_system_type(file_name),
          'first_name': find_first_name(file_name),
          'case_number': find_case_number(file_name),         
@@ -481,9 +496,10 @@ def analysis_filename(file_name):
          'image_modality': find_image_modality(file_name),
          'image_layer': find_image_layer(file_name),
          'file_type': find_file_type(file_name),
-         'file_name': file_name
+         'file_name': file_name,
+         'file_path': file_path
          }
-    df = pd.DataFrame(data=d, index=[0,])
+    df = pd.DataFrame(data=d, index=[ind, ])
 
     return df
     
@@ -495,14 +511,18 @@ def analysis_filelists(file_lists):
     # make a dataframe to contain the arributes of files 
     file_num = 0;
     for file_name in file_lists:
-        file_name = clean_file_name(file_name)
+#        file_name = clean_file_name(file_name)
             
         if file_num==0:
-            df = analysis_filename(file_name)
+            df = analysis_filename(file_name, file_num)
         else: 
-            df = df.append(analysis_filename(file_name))
+            df = df.append(analysis_filename(file_name, file_num))
         file_num += 1
+        
+    # save the list sheet
     df.to_csv('file_list.csv')
+    return df
+
 #        find_system_type(file_name)
 #        find_first_name(file_name)
 #        find_case_number(file_name)
@@ -517,7 +537,69 @@ def analysis_filelists(file_lists):
 #        find_image_modality(file_name)
 #        find_image_layer(file_name)
 #        find_file_type(file_name)
+
+def select_by_feature(df, feature_type, value):
+    """return the images from the list by a feature
+    """
+    df_select = df.loc[df[feature_type] == value]
+    return df_select
+
+def filter_images_by_features(df, system_type=0, OD_OS=0, FOV=0, 
+                             scan_time=0, image_modality=0, image_layer=0 ):
+    """Find the images by input features
+    Args：
+    
+    Return:
+        the dataframe of one or more images
+    """
+    # for find one image, the effcient could be very low
+    df_new = df
+    if system_type!=0:
+        df_new = select_by_feature(df_new, 'system_type', system_type)
+    if OD_OS!=0:
+        df_new = select_by_feature(df_new, 'OD_OS', OD_OS)
+    if FOV!=0:
+        df_new = select_by_feature(df_new, 'FOV', FOV)
+    if scan_time!=0:
+        df_new = select_by_feature(df_new, 'scan_time', scan_time)
+    if image_modality!=0:
+        df_new = select_by_feature(df_new, 'image_modality', image_modality)
+    if image_layer!=0:
+        df_new = select_by_feature(df_new, 'image_layer', image_layer)       
         
+    return df_new
+    
+
+    
+def get_images_information(df):
+    unique_scan_time = df['scan_time'].unique()
+    unique_FOV = df['FOV'].unique()
+    
+    images_information = {'scan_time':unique_scan_time,
+                          'FOV': unique_FOV}
+    return images_information
+
+
+
+def build_the_slide(df, style_type, scan_time):
+    img_paths = []
+    img_names
+    if style_type=='Retina':
+        #insert the retina slide here
+        img_nums = 6
+        img_names.append('VRI')
+        df_img1 = filter_images_by_features(df, scan_time=scan_time, 
+                                  image_modality='Angiography', 
+                                  image_layer=='VRI')
+        img_paths.append(df_img1['img_path'])
+        
+        
+        prs = add_new_slide_pics(prs, img_paths, img_nums, img_names)
+        
+        
+    elif  style_type=='CC':
+        #insert another slide here
+    
                 
 ######################################################
 #%% test part
