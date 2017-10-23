@@ -551,6 +551,20 @@ def get_images_information(df):
                           'FOV': unique_FOV}
     return images_information
 
+def get_the_title(df, scan_time):
+    """
+    get the title of the slide
+    """
+    df_new = select_by_feature(df, 'scan_time', scan_time)
+    # get the informaiton of this scan
+    try:
+        OD_OS = df_new.iloc[0]['OD_OS']
+        FOV = df_new.iloc[0]['FOV']
+    except:
+        print('cannot get name')
+        
+    title = scan_time + '_'+ OD_OS + '_' + str(FOV) +'mm'
+    return title
 
 def build_the_slide(prs, df, style_type, scan_time):
     img_paths = []
@@ -572,8 +586,9 @@ def build_the_slide(prs, df, style_type, scan_time):
                 img_paths.append(path[0])
         
         if len(img_paths)<=img_nums:
+            title = get_the_title(df, scan_time)
 #            print(img_paths)
-            prs = add_new_slide_pics(prs, img_paths, img_nums, img_names, 'Title')
+            prs = add_new_slide_pics(prs, img_paths, img_nums, img_names, title)
         else:
             print ('img_paths have ', len(img_paths), 'larger than 8')
         
@@ -590,7 +605,7 @@ def build_the_slide(prs, df, style_type, scan_time):
                 if ((row==1) & (col==3)):
                     image_col[col] = 'B-ScanFlow'
                     image_row[row] = 'B-scan'
-                    print image_col, image_row
+#                    print image_col, image_row
                 
                 img_names.append(image_col[col])
                 df_img = filter_images_by_features(df, scan_time=scan_time, 
@@ -602,7 +617,8 @@ def build_the_slide(prs, df, style_type, scan_time):
                 img_paths.append(path[0])
                 
         if len(img_paths)<=img_nums:
-            prs = add_new_slide_pics(prs, img_paths, img_nums, img_names,'Title')
+            title = get_the_title(df, scan_time)
+            prs = add_new_slide_pics(prs, img_paths, img_nums, img_names, title)
         else:
             print ('img_paths have ', len(img_paths), 'larger than 8')
             
@@ -615,9 +631,15 @@ def create_slides(df, prs):
     images_information = get_images_information(df)
     
     scan_times = images_information['scan_time']
+    ind_scan = 1
     for scan_time in scan_times:     
         prs = build_the_slide(prs, df, 'Retina', scan_time)
+        print ('build the slide for case'+str(ind_scan) + '  for Retina layer')
         prs = build_the_slide(prs, df, 'CC', scan_time)
+        print ('build the slide for case'+str(ind_scan) + ' for CC layer')
+        
+        print ('completed' + str(ind_scan) + ' of ' + str(len(scan_times)))
+        ind_scan += 1
     
     return prs
 #%%

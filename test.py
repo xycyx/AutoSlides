@@ -601,7 +601,17 @@ def create_slides(df, prs):
     
     return prs
     
-
+def get_the_title(df, scan_time):
+    """
+    get the title of the slide
+    """
+    df_new = select_by_feature(df, 'scan_time', scan_time)
+    # get the informaiton of this scan
+    OD_OS = df_new.loc[0]['OD_OS']
+    FOV = df_new.loc[0]['FOV']
+    title = scan_time + '_'+ OD_OS + '_' + str(FOV) +'mm'
+    return title
+    
 
 #%%
 ######################################################
