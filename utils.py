@@ -166,39 +166,7 @@ def set_layout(prs, layout, img_paths, img_nums, img_name, slide_title=''):
 #        else:
 #            return
 #        return width, height    
-#%%    
-# add table
 
-
-def add_a_table(prs, rows, cols, slide_title):
-    """ Add the slide with table
-    """
-    from pptx.util import Inches
-    title_only_slide_layout = prs.slide_layouts[5]
-    slide = prs.slides.add_slide(title_only_slide_layout)
-    shapes = slide.shapes
-    
-    shapes.title.text = slide_title
-    
-#    rows = cols = 2
-    left = top = Inches(2.0)
-    width = Inches(6.0)
-    height = Inches(0.8)
-    
-    table = shapes.add_table(rows, cols, left, top, width, height).table
-    
-#    # set column widths
-#    table.columns[0].width = Inches(2.0)
-#    table.columns[1].width = Inches(4.0)
-#    
-#    # write column headings
-#    table.cell(0, 0).text = 'Foo'
-#    table.cell(0, 1).text = 'Bar'
-#    
-#    # write body cells
-#    table.cell(1, 0).text = 'Baz'
-#    table.cell(1, 1).text = 'Qux'
-    return prs
 #######################################################################
 
 def search_images_in_folder(directory):
@@ -544,11 +512,25 @@ def filter_images_by_features(df, system_type=0, OD_OS=0, FOV=0,
     
    
 def get_images_information(df):
+    """
+    get the unique informations from the dataframe
+    """
     unique_scan_time = df['scan_time'].unique()
     unique_FOV = df['FOV'].unique()
+    unique_OD_OS = df['OD_OS'].unique()
+    unique_case_number = df['case_number'].unique()
+    unique_H_number = df['H_number'].unique()
+    unique_system_type = df['system_type'].unique()
+    unique_gender = df['gender'].unique()
     
     images_information = {'scan_time':unique_scan_time,
-                          'FOV': unique_FOV}
+                          'FOV': unique_FOV,
+                          'OD_OS': unique_OD_OS,
+                          'case_number': unique_case_number,
+                          'H_number': unique_H_number,
+                          'system_type': unique_system_type,
+                          'gender': unique_gender
+                          }
     return images_information
 
 def get_the_title(df, scan_time):
@@ -638,9 +620,76 @@ def create_slides(df, prs):
         prs = build_the_slide(prs, df, 'CC', scan_time)
         print ('build the slide for case'+str(ind_scan) + ' for CC layer')
         
-        print ('completed' + str(ind_scan) + ' of ' + str(len(scan_times)))
+        print ('completed ' + str(ind_scan) + ' of ' + str(len(scan_times)))
         ind_scan += 1
     
+    print ('saving...')
     return prs
 #%%
 ######################################################
+#%%    
+# add table
+
+
+def add_a_table(prs, rows, cols, slide_title, df):
+    """ Add the slide with table
+    """
+    # 
+#    from pptx.util import Inches
+# rows = 11, cols = 2
+    title_only_slide_layout = prs.slide_layouts[5]
+    slide = prs.slides.add_slide(title_only_slide_layout)
+    shapes = slide.shapes
+    
+    shapes.title.text = slide_title
+    
+#    rows = cols = 2
+    top = Inches(1.5)
+    left = Inches(2.0)
+    width = Inches(6.0)
+    height = Inches(0.8)
+    
+    table = shapes.add_table(rows, cols, left, top, width, height).table
+    
+#    # set column widths
+#    table.columns[0].width = Inches(2.0)
+#    table.columns[1].width = Inches(4.0)
+
+    # get images information
+    file_info = get_images_information(df)
+#     write column headings
+    table.cell(0, 0).text = 'Patient ID'
+    table.cell(0, 1).text = str(file_info['case_number'])
+    
+    table.cell(1, 0).text = 'MRN'
+    table.cell(1, 1).text = str(file_info['H_number'])
+    
+    table.cell(2, 0).text = 'Gender'
+    table.cell(2, 1).text = str(file_info['gender'])
+    
+    table.cell(3, 0).text = 'Age'
+    table.cell(4, 0).text = 'Pathology'
+    table.cell(5, 0).text = 'Clinical image'
+    
+    table.cell(6, 0).text = 'Image eyes'
+    table.cell(6, 1).text = str(file_info['OD_OS'])
+    
+    table.cell(7, 0).text = 'Image date'
+    table.cell(7, 1).text = str(file_info['scan_time'])
+    
+    table.cell(8, 0).text = 'Treatment times'
+    table.cell(9, 0).text = 'Image times'
+    
+    table.cell(10, 0).text = 'Image system'
+    table.cell(10, 1).text = str(file_info['system_type'])
+    
+    table.cell(11, 0).text = 'Scanning protocol'
+    table.cell(11, 1).text = str(file_info['FOV'])
+    
+    
+    
+#    
+#    # write body cells
+#    table.cell(1, 0).text = 'Baz'
+#    table.cell(1, 1).text = 'Qux'
+    return prs
