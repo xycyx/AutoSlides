@@ -101,6 +101,6 @@ ENV/
 .mypy_cache/
 
 # image file 
-example/
+example3/
 example2/
 
