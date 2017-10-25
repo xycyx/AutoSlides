@@ -16,12 +16,12 @@ Created on Thu Oct 12 16:14:01 2017
 import os
 import re
 from pptx.util import Inches, Pt
+import pandas as pd
 
 #%%
 def add_pic_with_title(slide, img_path, left, top, width, img_name):
     """add a picture to slide from img_path and add the title with img_name
     """
-    from pptx.util import Inches
     left = Inches(left)
     top_img = Inches(top)
     width = Inches(width)
@@ -84,7 +84,6 @@ def set_layout(prs, layout, img_paths, img_nums, img_name, slide_title=''):
     Return:
         pre: the Presentation 
     """
-    from pptx.util import Inches
     blank_slide_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(blank_slide_layout)
     
@@ -177,7 +176,6 @@ def search_images_in_folder(directory):
     Return:
         file_lists: the list of all images files
     """
-    import os
     file_lists = []
 #    directory = './example2'
     num = 0
@@ -289,7 +287,6 @@ def find_last_name(file_name):
 def find_H_number(file_name):
     """ get the H number by the rule '-Hnumber-'
     """
-    
     last_name = find_last_name(file_name)
     try:
         found = re.search("[_|-][H](\d+)", last_name)
@@ -314,10 +311,10 @@ def find_birthday(file_name):
     return birthday
 
 def find_FOV(file_name):
-    """get the field of veiw by "number mm_"
+    """get the field of veiw by "number mm_, or 16mm"
     """
     # find the HD 16mm mode
-    if file_name.find('16mm'):
+    if file_name.find('16mm')>=0:
         FOV = 16
         return FOV
     
@@ -368,7 +365,12 @@ def find_save_time(file_name):
 
 def find_image_modality(file_name):
     """ get image modality by '_OD_number_Angiography_' or '_OS_number_XX_'
+    or 'Cube' or 'HD'
     """
+    if file_name.lower().find('ale_cube')>=0:
+        return 'Cube'
+    elif file_name.lower().find('hdspotlight')>=0:
+        return 'HD'
     try:
         found = re.search("[_](OS|OD)[_](\d+)[_](Angiography_|Structure_|B-Scan)", file_name)
         image_modality_str = found.group(0)
@@ -376,6 +378,7 @@ def find_image_modality(file_name):
         print(file_name)
         print('image modality not found')
         return -1   
+    
     # get the image modality from the re result
     if image_modality_str.lower().find('b-scan')>=0:
         image_modality = 'B-scan'
@@ -388,17 +391,31 @@ def find_image_modality(file_name):
 def find_image_layer(file_name):
     """ get image layer by '_OD|OS_number_Angiography_XX.' 
     """
+    image_modality = find_image_modality(file_name)
+    # for structure scan
+    if (image_modality == 'HD')|(image_modality == 'Cube'):
+        try:
+            found = re.search("[_](OS|OD)[_](\d+)[_].+\.", file_name)
+            image_layer_str = found.group(0)
+        except AttributeError:
+            print('image layer not found')
+            return -1
+        image_layer = image_layer_str[19:-1]
+        return image_layer
+        
+    # for angio scan    
     try:
         found = re.search("[_](OS|OD)[_](\d+)[_](Angiography_|Structure_|B-Scan).+\.", file_name)
         image_layer_str = found.group(0)
     except AttributeError:
         print('image layer not found')
         return -1
-    if find_image_modality(file_name) == 'B-scan':
+    
+    if (image_modality == 'B-scan'):
         image_layer = image_layer_str[19:-1]
-    elif find_image_modality(file_name) == 'Angiography':
+    elif image_modality == 'Angiography':
         image_layer = image_layer_str[31:-1]
-    elif find_image_modality(file_name) == 'Structure':
+    elif image_modality == 'Structure':
         image_layer = image_layer_str[29:-1]
     else:
         print('image layer not found')
@@ -427,7 +444,7 @@ def analysis_filename(file_name, ind):
     """
     file_path = file_name
     file_name = clean_file_name(file_name)
-    import pandas as pd
+    
     # create the dataframe
     d = {'system_type': find_system_type(file_name),
          'first_name': find_first_name(file_name),
@@ -576,7 +593,7 @@ def build_the_slide(prs, df, style_type, scan_time):
                 try:
                     img_paths.append(path[0])
                 except IndexError:
-                    print('image ' + image_col[col] + 'not found')
+                    print('image ' + image_col[col] + ' not found')
                     img_paths.append(-1)
         
         if len(img_paths)<=img_nums:
@@ -633,7 +650,7 @@ def create_slides(df, prs):
     ind_scan = 1
     for scan_time in scan_times:     
         prs = build_the_slide(prs, df, 'Retina', scan_time)
-        print ('build the slide for case'+str(ind_scan) + '  for Retina layer')
+        print ('build the slide for case: '+str(ind_scan) + '  for Retina layer')
         prs = build_the_slide(prs, df, 'CC', scan_time)
         print ('build the slide for case'+str(ind_scan) + ' for CC layer')
         
