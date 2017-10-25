@@ -31,7 +31,8 @@ def add_pic_with_title(slide, img_path, left, top, width, img_name):
         pic = slide.shapes.add_picture(img_path, left, top_img, width=width)
     except IOError:
         print('warrning: IO error' ) 
-    
+    except AttributeError:
+        print('warrning: AttributeError' )
     #add title
     top_title = Inches(top - 0.3)
     width = height = Inches(1)
@@ -315,13 +316,18 @@ def find_birthday(file_name):
 def find_FOV(file_name):
     """get the field of veiw by "number mm_"
     """
+    # find the HD 16mm mode
+    if file_name.find('16mm'):
+        FOV = 16
+        return FOV
+    
     try:
-        found = re.search("(\d+)[m][m][_]", file_name)
+        found = re.search("[x](\d+)[m][m]", file_name)
         FOV_str = found.group(0)
     except AttributeError:
         print('field of veiw not found')
         return -1
-    FOV = int(FOV_str[0:-3])
+    FOV = int(FOV_str[1:-2])
     return FOV
 
 def find_OD_OS(file_name):
@@ -565,7 +571,13 @@ def build_the_slide(prs, df, style_type, scan_time):
                                           image_layer=image_col[col])
 #                print(df_img)
                 path = df_img['file_path'].tolist()
-                img_paths.append(path[0])
+#                print(len(path))
+                #if len(path) > 1 print('find mutiple images')
+                try:
+                    img_paths.append(path[0])
+                except IndexError:
+                    print('image ' + image_col[col] + 'not found')
+                    img_paths.append(-1)
         
         if len(img_paths)<=img_nums:
             title = get_the_title(df, scan_time)
@@ -596,7 +608,12 @@ def build_the_slide(prs, df, style_type, scan_time):
                 
                 path = df_img['file_path'].tolist()
 #                print(path)
-                img_paths.append(path[0])
+                try:
+                    img_paths.append(path[0])
+                except IndexError:
+                    print('image ' + image_col[col] + 'not found')
+                    img_paths.append(-1)
+                    
                 
         if len(img_paths)<=img_nums:
             title = get_the_title(df, scan_time)
