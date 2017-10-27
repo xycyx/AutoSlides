@@ -104,3 +104,7 @@ ENV/
 example3/
 example2/
 
+# all the images
+*.bmp
+*.jpg
+*.tif*

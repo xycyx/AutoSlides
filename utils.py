@@ -25,12 +25,12 @@ def add_pic_with_title(slide, img_path, left, top, width, img_name):
     left = Inches(left)
     top_img = Inches(top)
     width = Inches(width)
-    
+
     # add picture
     try:
         pic = slide.shapes.add_picture(img_path, left, top_img, width=width)
     except IOError:
-        print('warrning: IO error' ) 
+        print('warrning: IO error' )
     except AttributeError:
         print('warrning: AttributeError' )
     #add title
@@ -39,9 +39,9 @@ def add_pic_with_title(slide, img_path, left, top, width, img_name):
     txBox = slide.shapes.add_textbox(left, top_title , width, height)
     tf = txBox.text_frame
     tf.text = img_name
-    
+
     return slide
-    
+
 def add_new_slide_pics(prs, img_paths, img_nums, img_name, slide_title=''):
     """Decide the layout of pictures
     """
@@ -52,69 +52,69 @@ def add_new_slide_pics(prs, img_paths, img_nums, img_name, slide_title=''):
     if img_nums == 2:
         layout = [1, 2]
         prs = set_layout(prs, layout, img_paths, img_nums, img_name, slide_title)
-    
+
     #%% 3
     elif img_nums == 3:
         layout = [1, 3]
         prs = set_layout(prs, layout, img_paths, img_nums, img_name, slide_title)
-   
+
     #%% 4 still have a issue
     elif img_nums == 4:
         layout = [2, 2]
         prs = set_layout(prs, layout, img_paths, img_nums, img_name, slide_title)
-    
+
     #%% 6
     elif img_nums == 6:
         layout = [2, 3]
         prs = set_layout(prs, layout, img_paths, img_nums, img_name, slide_title)
-    
+
     #%% 8
     elif img_nums == 8:
         layout = [2, 4]
-        prs = set_layout(prs, layout, img_paths, img_nums, img_name, slide_title)        
-               
+        prs = set_layout(prs, layout, img_paths, img_nums, img_name, slide_title)
+
     else:
         print('other numbers')
     return prs
-    
+
 def set_layout(prs, layout, img_paths, img_nums, img_name, slide_title=''):
-    """Set the position and decide the layout of picture 
-    Args: 
+    """Set the position and decide the layout of picture
+    Args:
         layout: the size of images matriax , as [4, 2]
     Return:
-        pre: the Presentation 
+        pre: the Presentation
     """
     blank_slide_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(blank_slide_layout)
-    
+
     txleft = txtop = txwidth = txheight = Inches(1)
     txBox = slide.shapes.add_textbox(txleft, txtop, txwidth, txheight)
     tf = txBox.text_frame
-    
+
     tf.text = slide_title
 #    p = tf.add_paragraph()
 #    p.text = slide_title
 #    p.font.size = Pt(22)
-    
+
     ind = 0
     int_width = 0.3
     width = (10 - int_width)/layout[1]
     pic_width = width - int_width
     int_top = 7.5 - layout[0]*width
-#    for img_path in img_paths: 
+#    for img_path in img_paths:
     for i in range(0, img_nums):
-        img_path = img_paths[i]          
+        img_path = img_paths[i]
         col = ind%layout[1]
         row = ind//layout[1]
 #            height = ((10 - int_width)/layout[1] - int_width
         left = col*width + int_width
         top = row*width + int_top
-        
+
         # add the picture on its position
         add_pic_with_title(slide, img_path, left, top, pic_width, img_name[ind])
         ind = ind + 1
     return prs
-#%%   
+#%%
 # # get the size of image without open it
 #from PIL import Image
 #im = Image.open('./example/1.tiff')
@@ -165,13 +165,13 @@ def set_layout(prs, layout, img_paths, img_nums, img_name, slide_title=''):
 #                return
 #        else:
 #            return
-#        return width, height    
+#        return width, height
 
 #######################################################################
 
 def search_images_in_folder(directory):
     """Search and list all images (bmp, png, jpg, tif) files in the folder
-    Args: 
+    Args:
         directory: the folder conatins all files
     Return:
         file_lists: the list of all images files
@@ -184,28 +184,28 @@ def search_images_in_folder(directory):
             if file.lower().endswith(('.bmp','.png','.jpg','.jpeg','.tiff','.tif')):
 #                print file
                 file_lists.append(os.path.join(root, file))
-    return file_lists       
- 
+    return file_lists
+
 #file_lists = search_images_in_folder('./example2')
 
-#%%            
+#%%
 
 
 
 def clean_file_name(file_name):
     """Remove the ' ', '(', ')' of the the filename
-    Args: 
+    Args:
         file_name: the input filename
-    Returns: 
+    Returns:
         file_name: the output of cleaned filename
     """
-    
+
     while ' ' in file_name:
         file_name = file_name.replace(' ', '')
     while '(' in file_name:
         file_name = file_name.replace('(', '')
     while ')' in file_name:
-        file_name = file_name.replace(')', '')           
+        file_name = file_name.replace(')', '')
     return file_name
 
 #%%
@@ -230,8 +230,8 @@ def find_first_name(file_name):
         name_position = file_name.rfind('/') + 1
     else:
         name_position = 0
-    
-    #get the first name from the strat position    
+
+    #get the first name from the strat position
     try:
         found = re.search(".+[_][_]", file_name[name_position:])
         first_name_str = found.group(0)
@@ -317,7 +317,7 @@ def find_FOV(file_name):
     if file_name.find('16mm')>=0:
         FOV = 16
         return FOV
-    
+
     try:
         found = re.search("[x](\d+)[m][m]", file_name)
         FOV_str = found.group(0)
@@ -377,8 +377,8 @@ def find_image_modality(file_name):
     except AttributeError:
         print(file_name)
         print('image modality not found')
-        return -1   
-    
+        return -1
+
     # get the image modality from the re result
     if image_modality_str.lower().find('b-scan')>=0:
         image_modality = 'B-scan'
@@ -389,7 +389,7 @@ def find_image_modality(file_name):
     return image_modality
 
 def find_image_layer(file_name):
-    """ get image layer by '_OD|OS_number_Angiography_XX.' 
+    """ get image layer by '_OD|OS_number_Angiography_XX.'
     """
     image_modality = find_image_modality(file_name)
     # for structure scan
@@ -402,15 +402,15 @@ def find_image_layer(file_name):
             return -1
         image_layer = image_layer_str[19:-1]
         return image_layer
-        
-    # for angio scan    
+
+    # for angio scan
     try:
-        found = re.search("[_](OS|OD)[_](\d+)[_](Angiography_|Structure_|B-Scan).+\.", file_name)
+        found = re.search("[_](OS|OD)[_](\d+)[_](Angiography_|Structure_|B-Scan|B-sacn).+\.", file_name)
         image_layer_str = found.group(0)
     except AttributeError:
         print('image layer not found')
         return -1
-    
+
     if (image_modality == 'B-scan'):
         image_layer = image_layer_str[19:-1]
     elif image_modality == 'Angiography':
@@ -421,7 +421,7 @@ def find_image_layer(file_name):
         print('image layer not found')
         return -1
     return image_layer
-    
+
 def find_file_type(file_name):
     """ get file type by '.XXX'
     """
@@ -433,22 +433,22 @@ def find_file_type(file_name):
         return -1
     file_type = file_type_str[1::]
     return file_type
-    
-    
+
+
 
 
 #%%
 
 def analysis_filename(file_name, ind):
-    """splict the filename to a dataframe 
+    """splict the filename to a dataframe
     """
     file_path = file_name
     file_name = clean_file_name(file_name)
-    
+
     # create the dataframe
     d = {'system_type': find_system_type(file_name),
          'first_name': find_first_name(file_name),
-         'case_number': find_case_number(file_name),         
+         'case_number': find_case_number(file_name),
          'last_name': find_last_name(file_name),
          'H_number': find_H_number(file_name),
          'gender': find_gender(file_name),
@@ -466,23 +466,23 @@ def analysis_filename(file_name, ind):
     df = pd.DataFrame(data=d, index=[ind, ])
 
     return df
-    
+
 
 def analysis_filelists(file_lists):
-    """this function accept the file name and 
+    """this function accept the file name and
     """
-    
-    # make a dataframe to contain the arributes of files 
+
+    # make a dataframe to contain the arributes of files
     file_num = 0;
     for file_name in file_lists:
 #        file_name = clean_file_name(file_name)
-            
+
         if file_num==0:
             df = analysis_filename(file_name, file_num)
-        else: 
+        else:
             df = df.append(analysis_filename(file_name, file_num))
         file_num += 1
-        
+
     # save the list sheet
     df.to_csv('file_list.csv')
     return df
@@ -508,11 +508,11 @@ def select_by_feature(df, feature_type, value):
     df_select = df.loc[df[feature_type] == value]
     return df_select
 
-def filter_images_by_features(df, system_type=0, OD_OS=0, FOV=0, 
+def filter_images_by_features(df, system_type=0, OD_OS=0, FOV=0,
                              scan_time=0, image_modality=0, image_layer=0 ):
     """Find the images by input features
     Args：
-    
+
     Return:
         the dataframe of one or more images
     """
@@ -529,11 +529,11 @@ def filter_images_by_features(df, system_type=0, OD_OS=0, FOV=0,
     if image_modality!=0:
         df_new = select_by_feature(df_new, 'image_modality', image_modality)
     if image_layer!=0:
-        df_new = select_by_feature(df_new, 'image_layer', image_layer)       
-        
+        df_new = select_by_feature(df_new, 'image_layer', image_layer)
+
     return df_new
-    
-   
+
+
 def get_images_information(df):
     """
     get the unique informations from the dataframe
@@ -545,7 +545,7 @@ def get_images_information(df):
     unique_H_number = df['H_number'].unique()
     unique_system_type = df['system_type'].unique()
     unique_gender = df['gender'].unique()
-    
+
     images_information = {'scan_time':unique_scan_time,
                           'FOV': unique_FOV,
                           'OD_OS': unique_OD_OS,
@@ -567,7 +567,7 @@ def get_the_title(df, scan_time):
         FOV = df_new.iloc[0]['FOV']
     except:
         print('cannot get name')
-        
+
     title = scan_time + '_'+ OD_OS + '_' + str(FOV) +'mm'
     return title
 
@@ -583,8 +583,8 @@ def build_the_slide(prs, df, style_type, scan_time):
         for row in range(0, 2):
             for col in range(0, 4):
                 img_names.append(image_col[col])
-                df_img = filter_images_by_features(df, scan_time=scan_time, 
-                                          image_modality=image_row[row], 
+                df_img = filter_images_by_features(df, scan_time=scan_time,
+                                          image_modality=image_row[row],
                                           image_layer=image_col[col])
 #                print(df_img)
                 path = df_img['file_path'].tolist()
@@ -595,15 +595,15 @@ def build_the_slide(prs, df, style_type, scan_time):
                 except IndexError:
                     print('image ' + image_col[col] + ' not found')
                     img_paths.append(-1)
-        
+
         if len(img_paths)<=img_nums:
             title = get_the_title(df, scan_time)
 #            print(img_paths)
             prs = add_new_slide_pics(prs, img_paths, img_nums, img_names, title)
         else:
             print ('img_paths have ', len(img_paths), 'larger than 8')
-        
-        
+
+
     elif  style_type=='CC':
         #insert another slide here
         img_nums = 8
@@ -617,12 +617,12 @@ def build_the_slide(prs, df, style_type, scan_time):
                     image_col[col] = 'B-ScanFlow'
                     image_row[row] = 'B-scan'
 #                    print image_col, image_row
-                
+
                 img_names.append(image_col[col])
-                df_img = filter_images_by_features(df, scan_time=scan_time, 
-                                          image_modality=image_row[row], 
+                df_img = filter_images_by_features(df, scan_time=scan_time,
+                                          image_modality=image_row[row],
                                           image_layer=image_col[col])
-                
+
                 path = df_img['file_path'].tolist()
 #                print(path)
                 try:
@@ -630,14 +630,14 @@ def build_the_slide(prs, df, style_type, scan_time):
                 except IndexError:
                     print('image ' + image_col[col] + 'not found')
                     img_paths.append(-1)
-                    
-                
+
+
         if len(img_paths)<=img_nums:
             title = get_the_title(df, scan_time)
             prs = add_new_slide_pics(prs, img_paths, img_nums, img_names, title)
         else:
             print ('img_paths have ', len(img_paths), 'larger than 8')
-            
+
     return prs
 
 def create_slides(df, prs):
@@ -645,46 +645,46 @@ def create_slides(df, prs):
     Creat slides
     """
     images_information = get_images_information(df)
-    
+
     scan_times = images_information['scan_time']
     ind_scan = 1
-    for scan_time in scan_times:     
+    for scan_time in scan_times:
         prs = build_the_slide(prs, df, 'Retina', scan_time)
         print ('build the slide for case: '+str(ind_scan) + '  for Retina layer')
         prs = build_the_slide(prs, df, 'CC', scan_time)
         print ('build the slide for case'+str(ind_scan) + ' for CC layer')
-        
+
         print ('completed ' + str(ind_scan) + ' of ' + str(len(scan_times)))
         ind_scan += 1
-    
+
     print ('saving...')
     return prs
 #%%
 ######################################################
-#%%    
+#%%
 # add table
 
 
 def add_a_table(prs, rows, cols, slide_title, df):
     """ Add the slide with table
     """
-    # 
+    #
 #    from pptx.util import Inches
 # rows = 11, cols = 2
     title_only_slide_layout = prs.slide_layouts[5]
     slide = prs.slides.add_slide(title_only_slide_layout)
     shapes = slide.shapes
-    
+
     shapes.title.text = slide_title
-    
+
 #    rows = cols = 2
     top = Inches(1.5)
     left = Inches(2.0)
     width = Inches(6.0)
     height = Inches(0.8)
-    
+
     table = shapes.add_table(rows, cols, left, top, width, height).table
-    
+
 #    # set column widths
 #    table.columns[0].width = Inches(2.0)
 #    table.columns[1].width = Inches(4.0)
@@ -694,35 +694,35 @@ def add_a_table(prs, rows, cols, slide_title, df):
 #     write column headings
     table.cell(0, 0).text = 'Patient ID'
     table.cell(0, 1).text = str(file_info['case_number'])
-    
+
     table.cell(1, 0).text = 'MRN'
     table.cell(1, 1).text = str(file_info['H_number'])
-    
+
     table.cell(2, 0).text = 'Gender'
     table.cell(2, 1).text = str(file_info['gender'])
-    
+
     table.cell(3, 0).text = 'Age'
     table.cell(4, 0).text = 'Pathology'
     table.cell(5, 0).text = 'Clinical image'
-    
+
     table.cell(6, 0).text = 'Image eyes'
     table.cell(6, 1).text = str(file_info['OD_OS'])
-    
+
     table.cell(7, 0).text = 'Image date'
     table.cell(7, 1).text = str(file_info['scan_time'])
-    
+
     table.cell(8, 0).text = 'Treatment times'
     table.cell(9, 0).text = 'Image times'
-    
+
     table.cell(10, 0).text = 'Image system'
     table.cell(10, 1).text = str(file_info['system_type'])
-    
+
     table.cell(11, 0).text = 'Scanning protocol'
     table.cell(11, 1).text = str(file_info['FOV'])
-    
-    
-    
-#    
+
+
+
+#
 #    # write body cells
 #    table.cell(1, 0).text = 'Baz'
 #    table.cell(1, 1).text = 'Qux'
