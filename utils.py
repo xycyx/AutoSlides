@@ -568,7 +568,7 @@ def get_the_title(df, scan_time):
     except:
         print('cannot get name')
 
-    title = scan_time + '_'+ OD_OS + '_' + str(FOV) +'mm'
+    title = str(scan_time) + '_'+ str(OD_OS) + '_' + str(FOV) +'mm'
     return title
 
 def build_the_slide(prs, df, style_type, scan_time):
